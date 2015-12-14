@@ -42,6 +42,7 @@ task release: :compile do
       MRuby.each_target do |target|
         next if name == "host"
 
+        # TODO : Copy binaries in bin/releases/v0.0.x/host/grokly
         arch = name
         bin  = "#{build_dir}/bin/#{exefile(APP_NAME)}"
         FileUtils.mkdir_p(name)
