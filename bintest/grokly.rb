@@ -1,6 +1,6 @@
 require 'open3'
 
-BIN_PATH = File.join(File.dirname(__FILE__), "../mruby/bin/grokp")
+BIN_PATH = File.join(File.dirname(__FILE__), "../mruby/bin/grokly")
 
 assert('hello') do
   output, status = Open3.capture2(BIN_PATH)
