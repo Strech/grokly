@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.expand_path "../../", __FILE__)
+
+require "options"
+require "compiler"
+require "finder"
+require "cli"
+
+Cli.new(ARGV).run
