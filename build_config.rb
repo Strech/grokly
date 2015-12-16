@@ -2,6 +2,9 @@ def gem_config(conf)
   # conf.gembox "default"
 
   # be sure to include this gem (the cli app)
+#  conf.gem mgem: "mruby-io"
+  conf.gem mgem: "mruby-getopts"
+  conf.gem mgem: "mruby-regexp-pcre"
   conf.gem File.expand_path(File.dirname(__FILE__))
 end
 
