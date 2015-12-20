@@ -9,14 +9,19 @@ module Grokly
     end
 
     def run
-      #puts "@options = #{@options.inspect}"
-      #puts "@sentence = #{@sentence.inspect}"
+      puts "DEBUG"
+      puts "@options = #{@options.inspect}"
+      puts "@sentence = #{@sentence.inspect}"
+      puts "examples = #{examples.inspect}"
+      puts "=" * 100
 
-      if help?
+      if version?
+        Grokly::Commands::Version.new.run
+      elsif help?
         Grokly::Commands::Help.new.run
-      elsif compile_and_test?
+      elsif test?
         Grokly::Commands::Test.new(sentence, examples: examples, dictionary: dictionary).run
-      elsif compile?
+      else
         Grokly::Commands::Compile.new(sentence, dictionary: dictionary).run
       end
     end
@@ -36,17 +41,28 @@ module Grokly
       !!@options["?"] || !!@options["help"] || @sentence.nil?
     end
 
-    def compile?
+    def version?
+      !!@options["version"]
     end
 
-    def compile_and_test?
+    def test?
+      !examples.empty?
     end
 
     def dictionary
     end
 
     def examples
-      IO.select([$stdin], [], [], 0.001).nil?
+      @examples ||= examples_from_file || examples_from_stdin
+    end
+
+    def examples_from_file
+      return [] if @options["e"].empty? || !File.exists?(@options["e"])
+      File.open(@options["e"], "r").readlines
+    end
+
+    def examples_from_stdin
+      return [] if IO.select([$stdin], [], [], 0.001).nil?
       $stdin.readlines
     end
   end
