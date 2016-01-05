@@ -13,6 +13,7 @@ module Grokly
       puts "@options = #{@options.inspect}"
       puts "@sentence = #{@sentence.inspect}"
       puts "examples = #{examples.inspect}"
+      puts "dictionary = #{dictionary.inspect}"
       puts "=" * 100
 
       if version?
@@ -34,7 +35,7 @@ module Grokly
     end
 
     def extract_sentence(args)
-      args.last if /\A[^\-]/ =~ args.last
+      args.last if /\A[^\-]/ =~ args.last && args.size > 1
     end
 
     def compile?
@@ -50,11 +51,15 @@ module Grokly
     end
 
     def dictionary
-      []
+      @dictionary ||= dictionary_from_file || Dictionary.default
     end
 
     def examples
       @examples ||= examples_from_file || examples_from_stdin
+    end
+
+    def dictionary_from_file
+      nil
     end
 
     def examples_from_file
