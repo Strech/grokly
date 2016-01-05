@@ -1,29 +1,36 @@
-require 'fileutils'
+require "fileutils"
 
-MRUBY_VERSION="1.2.0"
+MRUBY_VERSION = "1.2.0"
+APP_NAME = ENV["APP_NAME"] || "grokly"
+APP_ROOT = ENV["APP_ROOT"] || Dir.pwd
+MRUBY_ROOT = File.expand_path(ENV["MRUBY_ROOT"] || "#{APP_ROOT}/mruby")
+MRUBY_CONFIG = File.expand_path(ENV["MRUBY_CONFIG"] || "build_config.rb")
+
+ENV["MRUBY_ROOT"] = MRUBY_ROOT
+ENV["MRUBY_CONFIG"] = MRUBY_CONFIG
 
 file :mruby do
-  #sh "git clone --depth=1 https://github.com/mruby/mruby"
   sh "curl -L --fail --retry 3 --retry-delay 1 https://github.com/mruby/mruby/archive/1.2.0.tar.gz -s -o - | tar zxf -"
   FileUtils.mv("mruby-1.2.0", "mruby")
 end
 
-APP_NAME = ENV["APP_NAME"] || "grokly"
-APP_ROOT = ENV["APP_ROOT"] || Dir.pwd
-# avoid redefining constants in mruby Rakefile
-mruby_root = File.expand_path(ENV["MRUBY_ROOT"] || "#{APP_ROOT}/mruby")
-mruby_config = File.expand_path(ENV["MRUBY_CONFIG"] || "build_config.rb")
-ENV["MRUBY_ROOT"] = mruby_root
-ENV["MRUBY_CONFIG"] = mruby_config
-Rake::Task[:mruby].invoke unless Dir.exist?(mruby_root)
-Dir.chdir(mruby_root)
-load "#{mruby_root}/Rakefile"
+Rake::Task[:mruby].invoke unless Dir.exist?(MRUBY_ROOT)
+Dir.chdir(MRUBY_ROOT)
+load "#{MRUBY_ROOT}/Rakefile"
 
 desc "Compile binary"
 task compile: [:all] do
-  %W(#{mruby_root}/build/x86_64-pc-linux-gnu/bin/#{APP_NAME} #{mruby_root}/build/i686-pc-linux-gnu/#{APP_NAME}").each do |bin|
+  %W(#{MRUBY_ROOT}/build/x86_64-pc-linux-gnu/bin/#{APP_NAME} #{MRUBY_ROOT}/build/i686-pc-linux-gnu/#{APP_NAME}").each do |bin|
     sh "strip --strip-unneeded #{bin}" if File.exist?(bin)
   end
+
+  require_relative "mrblib/grokly/version"
+
+  bin_path = APP_ROOT + "/bin"
+  FileUtils.mkdir(bin_path) unless Dir.exists?(bin_path)
+
+  puts "Writing #{bin_path}/#{APP_NAME} - v#{Grokly::VERSION}"
+  FileUtils.cp("#{MRUBY_ROOT}/build/host/bin/#{APP_NAME}", bin_path)
 end
 
 desc "generate a release tarball"
@@ -39,7 +46,7 @@ task release: :compile do
 
   Dir.mktmpdir do |tmp_dir|
     Dir.chdir(tmp_dir) do
-      MRuby.each_target do |target|
+      MRuby.each_target do |_|
         next if name == "host"
 
         # TODO : Copy binaries in bin/releases/v0.0.x/host/grokly
@@ -66,7 +73,7 @@ namespace :test do
   # only build mtest for host
   task mtest: :compile do
     # in order to get mruby/test/t/synatx.rb __FILE__ to pass,
-    # we need to make sure the tests are built relative from mruby_root
+    # we need to make sure the tests are built relative from MRUBY_ROOT
     MRuby.each_target do |target|
       # only run unit tests here
       target.enable_bintest = false
