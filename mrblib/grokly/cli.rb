@@ -17,12 +17,12 @@ module Grokly
 
       if version?
         Grokly::Commands::Version.new.run
-      elsif help?
-        Grokly::Commands::Help.new.run
       elsif test?
         Grokly::Commands::Test.new(sentence, examples: examples, dictionary: dictionary).run
-      else
+      elsif compile?
         Grokly::Commands::Compile.new(sentence, dictionary: dictionary).run
+      else
+        Grokly::Commands::Help.new.run
       end
     end
 
@@ -37,8 +37,8 @@ module Grokly
       args.last if /\A[^\-]/ =~ args.last
     end
 
-    def help?
-      !!@options["?"] || !!@options["help"] || @sentence.nil?
+    def compile?
+      !@sentence.nil? && !@sentence.empty? && !dictionary.empty?
     end
 
     def version?
@@ -46,10 +46,11 @@ module Grokly
     end
 
     def test?
-      !examples.empty?
+      compile? && !examples.empty?
     end
 
     def dictionary
+      []
     end
 
     def examples
@@ -57,7 +58,7 @@ module Grokly
     end
 
     def examples_from_file
-      return [] if @options["e"].empty? || !File.exists?(@options["e"])
+      return [] if !@options.key?("e") || @options["e"].empty? || !File.exists?(@options["e"])
       File.open(@options["e"], "r").readlines
     end
 
