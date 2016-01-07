@@ -19,12 +19,14 @@ module Grokly
       if version?
         Grokly::Commands::Version.new.run
       elsif test?
-        Grokly::Commands::Test.new(sentence, examples: examples, dictionary: dictionary).run
+        Grokly::Commands::Test.new(@sentence, examples: examples, dictionary: dictionary).run
       elsif compile?
-        Grokly::Commands::Compile.new(sentence, dictionary: dictionary).run
+        Grokly::Commands::Compile.new(@sentence, dictionary: dictionary).run
       else
         Grokly::Commands::Help.new.run
       end
+    # rescue => error
+    #   puts error.message
     end
 
     private
@@ -59,11 +61,12 @@ module Grokly
     end
 
     def dictionary_from_file
-      nil
+      return nil if !@options.key?("d") || @options["d"].empty? || !File.exists?(@options["d"])
+      File.open(@options["d"], "r").readlines
     end
 
     def examples_from_file
-      return [] if !@options.key?("e") || @options["e"].empty? || !File.exists?(@options["e"])
+      return nil if !@options.key?("e") || @options["e"].empty? || !File.exists?(@options["e"])
       File.open(@options["e"], "r").readlines
     end
 

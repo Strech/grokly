@@ -1,6 +1,5 @@
 module Grokly
   module Dictionary
-
     def default
       @default ||= tokenize(DEFAULT_DICTIONARY)
     end
